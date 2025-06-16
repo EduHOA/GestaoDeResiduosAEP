@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: waste-management-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: waste_management
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: wasteuser
+      MYSQL_PASSWORD: wastepassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/data.sql:/docker-entrypoint-initdb.d/2-data.sql
+      - ./src/main/resources/init-auth.sql:/docker-entrypoint-initdb.d/3-init-auth.sql
+
+  app:
+    build: .
+    container_name: waste-management-app
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:mysql://mysql:3306/waste_management?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USERNAME: wasteuser
+      DB_PASSWORD: wastepassword
+      JWT_SECRET: mySecretKeyForEcoAppWasteManagement2024Production
+
+volumes:
+  mysql_data: 
